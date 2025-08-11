@@ -243,12 +243,15 @@ template_geographic_coverage <- function(
       }
       
       geocoverage_out <- data.frame(
-        geographicDescription = enc2utf8(as.character(site_out)), # Encode extracted metadata in UTF-8
-        northBoundingCoordinate = latitude_out,
-        southBoundingCoordinate = latitude_out,
-        eastBoundingCoordinate = longitude_out,
-        westBoundingCoordinate = longitude_out,
+        geographicDescription = enc2utf8(as.character(site_full)), # Encode extracted metadata in UTF-8
+        northBoundingCoordinate = latitude_full,
+        southBoundingCoordinate = latitude_full,
+        eastBoundingCoordinate = longitude_full,
+        westBoundingCoordinate = longitude_full,
         stringsAsFactors = F)
+      
+      # get unique rows
+      geocoverage_out <- unique(geocoverage_out)
       
       geocoverage_out <- geocoverage_out[complete.cases(geocoverage_out), ]
       
