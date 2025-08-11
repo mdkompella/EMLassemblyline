@@ -182,7 +182,7 @@ template_geographic_coverage <- function(
       
       for (j in seq_along(x$data.table)) {
         
-        df_table <- x$data.table[[data_file[[j]]]]$content
+        df_table <- x$data.table[[data_file[j]]]$content
         
         # Validate column names
         
