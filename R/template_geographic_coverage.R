@@ -172,86 +172,67 @@ template_geographic_coverage <- function(
     
     if (!isTRUE(empty)){
       
-      # Initiate empty lists to append all geography
+      df_table <- x$data.table[[data_file]]$content
       
-      latitude_full = c()
-      longitude_full = c() 
-      site_full = c()
+      # Validate column names
       
-      # Loop through each validated file name input
-      
-      for (j in seq_along(data_file)) {
-        
-        df_table <- x$data.table[[data_file[j]]]$content
-        
-        # Validate column names
-        
-        columns <- colnames(df_table)
-        columns_in <- c(lat.col[j], lon.col[j], site.col[j])
-        use_i <- stringr::str_detect(string = columns,
-                                     pattern = stringr::str_c("^", columns_in, "$", collapse = "|"))
-        if (sum(use_i) > 0){
-          use_i2 <- columns[use_i]
-          use_i3 <- columns_in %in% use_i2
-          if (sum(use_i) != 3){
-            stop(paste("Invalid column names entered: ", paste(columns_in[!use_i3], collapse = ", "), sep = ""))
-          }
+      columns <- colnames(df_table)
+      columns_in <- c(lat.col, lon.col, site.col)
+      use_i <- stringr::str_detect(string = columns,
+                                   pattern = stringr::str_c("^", columns_in, "$", collapse = "|"))
+      if (sum(use_i) > 0){
+        use_i2 <- columns[use_i]
+        use_i3 <- columns_in %in% use_i2
+        if (sum(use_i) != 3){
+          stop(paste("Invalid column names entered: ", paste(columns_in[!use_i3], collapse = ", "), sep = ""))
         }
+      }
+      
+      # Subset table names
+      
+      df_table <- df_table[ ,c(lat.col, lon.col, site.col)]
+      
+      # Remove incomplete lines
+      
+      use_i <- df_table[site.col] == ""
+      df_table[use_i, site.col] <- NA
+      df_table <- df_table[stats::complete.cases(df_table), ]
+      
+      # Get vectors of latitude, longitude, and site
+      
+      latitude <- df_table[lat.col]
+      
+      longitude <- df_table[lon.col]
+      
+      site_name <- unique(unlist(df_table[site.col]))
+      
+      # Output lat and long corresponding to sites
+      
+      latitude_out = c()
+      longitude_out = c() 
+      site_out = c()
+      
+      for (i in 1:length(site_name)){
         
-        # Subset table names
+        useI <- site_name[i] == df_table[site.col]
         
-        df_table <- df_table[ ,c(lat.col[j], lon.col[j], site.col[j])]
+        latitude_out[i] <- suppressWarnings(
+          as.numeric(latitude[useI][1]))
         
-        # Remove incomplete lines
+        longitude_out[i] <- suppressWarnings(
+          as.numeric(longitude[useI][1]))
         
-        use_i <- df_table[site.col[j]] == ""
-        df_table[use_i, site.col[j]] <- NA
-        df_table <- df_table[stats::complete.cases(df_table), ]
-        
-        # Get vectors of latitude, longitude, and site
-        
-        latitude <- df_table[lat.col[j]]
-        
-        longitude <- df_table[lon.col[j]]
-        
-        site_name <- unique(unlist(df_table[site.col[j]]))
-        
-        # Output lat and long corresponding to sites
-        
-        latitude_out = c()
-        longitude_out = c() 
-        site_out = c()
-        
-        for (i in 1:length(site_name)){
-          
-          useI <- site_name[i] == df_table[site.col[j]]
-          
-          latitude_out[i] <- suppressWarnings(
-            as.numeric(latitude[useI][1]))
-          
-          longitude_out[i] <- suppressWarnings(
-            as.numeric(longitude[useI][1]))
-          
-          site_out[i] <- site_name[i]
-          
-        }
-        
-        latitude_full <- append(latitude_full, latitude_out)
-        longitude_full <- append(longitude_full, longitude_out)
-        site_full <- append(site_full, site_out)
+        site_out[i] <- site_name[i]
         
       }
       
       geocoverage_out <- data.frame(
-        geographicDescription = enc2utf8(as.character(site_full)), # Encode extracted metadata in UTF-8
-        northBoundingCoordinate = latitude_full,
-        southBoundingCoordinate = latitude_full,
-        eastBoundingCoordinate = longitude_full,
-        westBoundingCoordinate = longitude_full,
+        geographicDescription = enc2utf8(as.character(site_out)), # Encode extracted metadata in UTF-8
+        northBoundingCoordinate = latitude_out,
+        southBoundingCoordinate = latitude_out,
+        eastBoundingCoordinate = longitude_out,
+        westBoundingCoordinate = longitude_out,
         stringsAsFactors = F)
-      
-      # get unique rows
-      geocoverage_out <- unique(geocoverage_out)
       
       geocoverage_out <- geocoverage_out[complete.cases(geocoverage_out), ]
       
