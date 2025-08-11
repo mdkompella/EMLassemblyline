@@ -178,9 +178,9 @@ template_geographic_coverage <- function(
       longitude_full = c() 
       site_full = c()
       
-      # Loop through each input to data.table
+      # Loop through each validated file name input
       
-      for (j in seq_along(x$data.table)) {
+      for (j in seq_along(data_file)) {
         
         df_table <- x$data.table[[data_file[j]]]$content
         
